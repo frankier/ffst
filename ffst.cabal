@@ -1,0 +1,21 @@
+Name:                ffst
+Version:             0.1
+Description:         Frankie's Finite State Technology
+Author:              Frankie Robertson
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+
+executable ffst
+  Build-Depends:
+    base >= 4 && < 5,
+    binary,
+    bytestring,
+    pretty-show,
+    containers,
+    utf8-string,
+    vector,
+    monad-loops,
+    transformers,
+    errors
+  main-is:           Main.hs
+  ghc-options:       -Wall
