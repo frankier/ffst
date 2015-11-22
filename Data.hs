@@ -11,6 +11,7 @@ import qualified Data.Vector as V
 
 type BSSMap = SM.Map String String
 type Alphabet = V.Vector BSS.ByteString
+type AlphabetIndex = Int
 
 data OLHeader = OLHeader {
   inputSymbols :: Int,
@@ -21,11 +22,13 @@ data OLHeader = OLHeader {
 
   isWeighted :: Bool,
   isDeterministic :: Bool,
+  isInputDeterministic  :: Bool,
+  isMinimized :: Bool,
   isCyclic :: Bool,
-  hasEpsilonEpsilonTransitionFree :: Bool,
-  hasEpsilonXTransitionFree :: Bool,
-  hasEpsilonXCycleFree :: Bool,
-  hasUnweightedEpsilonXCycleFree :: Bool
+  hasEpsilonEpsilonTransitions :: Bool,
+  hasInputEpsilonTransitions :: Bool,
+  hasInputEpsilonCycles :: Bool,
+  hasUnweightedInputEpsilonCycles :: Bool
 } deriving (Show, Eq)
 
 data FST = FST {
@@ -36,6 +39,13 @@ data FST = FST {
   tia :: BSS.ByteString,
   tt :: BSS.ByteString
 } deriving (Eq, Show)
+
+data FSTCursor = TIACursor Int | TTCursor Int
+
+data FSTState = FSTState {
+  position :: FSTCursor,
+  output :: String
+}
 
 fstToString :: FST -> String
 fstToString transducer =
