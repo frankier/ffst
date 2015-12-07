@@ -20,6 +20,9 @@ getStringNul = U8L.toString <$> getLazyByteStringNul
 getBool32 :: Get Bool
 getBool32 = fmap (/= 0) getWord32le
 
+getBool16 :: Get Bool
+getBool16 = fmap (/= 0) getWord16le
+
 getWord16leAsNum :: (Num a) => Get a
 getWord16leAsNum =
   fmap fromIntegral getWord16le

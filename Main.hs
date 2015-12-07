@@ -7,7 +7,6 @@ import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import Parser (getFST)
 import Data.Binary.Get (runGet)
-import Control.Monad.Loops (unfoldrM)
 
 import qualified Data.ByteString as BSS
 import qualified Data.ByteString.Lazy as BSL
@@ -24,22 +23,6 @@ parseArgs :: [String] -> IO String
 parseArgs [fn] = return fn
 parseArgs _ = usage >> exitFailure
 
-takeAlphabetIndex :: Data.FST -> BSS.ByteString -> Maybe (Maybe (Data.AlphabetIndex, BSS.ByteString))
-takeAlphabetIndex transducer input
-    | BSS.null input = Just Nothing
-    | otherwise = Just <$> ((,) <$> alphabetIndex <*> rest)
-  where
-    alphabet = Data.inputAlphabet transducer
-    alphabetIndex = V.findIndex (`BSS.isPrefixOf` input) alphabet
-    symbol = (alphabet V.!) <$> alphabetIndex
-    rest = flip BSS.drop input . BSS.length <$> symbol
-
-bsToAlphabetString :: Data.FST -> BSS.ByteString -> Maybe [Data.AlphabetIndex]
-bsToAlphabetString transducer = unfoldrM $ takeAlphabetIndex transducer
-
-alphabetStringToBs :: Data.FST -> [Data.AlphabetIndex] -> BSS.ByteString
-alphabetStringToBs transducer = BSS.concat . fmap (Data.alphabet transducer V.!)
-
 repl :: Data.FST -> IO ()
 repl transducer = repl'
   where
@@ -52,8 +35,8 @@ repl transducer = repl'
     humanRun input =
       maybe
         (U8S.fromString "Input contains symbols not in transducer input alphabet")
-        ((alphabetStringToBs transducer) . (Simulator.runFST transducer))
-        (bsToAlphabetString transducer input)
+        (Data.alphabetStringToBs transducer . Simulator.runFST transducer)
+        (Data.bsToAlphabetString transducer input)
 
 main :: IO ()
 main = do
@@ -61,5 +44,5 @@ main = do
     fn <- parseArgs args
     input <- BSL.readFile fn
     let transducer = runGet getFST input
-    --putStrLn . Data.fstToString $ transducer
+    putStrLn . Data.fstToString $ transducer
     repl transducer

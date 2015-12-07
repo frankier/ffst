@@ -16,6 +16,9 @@ executable ffst
     vector,
     monad-loops,
     transformers,
-    errors
+    errors,
+    pretty-hex,
+    data-binary-ieee754,
+    set-monad
   main-is:           Main.hs
   ghc-options:       -Wall

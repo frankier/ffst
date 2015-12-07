@@ -10,7 +10,6 @@ import Control.Error.Safe (tryAssert, tryJust)
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Trans.Class (lift)
 
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString as BSS
 import qualified Data.Map.Strict as SM
 import qualified Data.ByteString.UTF8 as U8S
@@ -87,8 +86,8 @@ getFST = do
   let alphabetSymbols = Data.totalSymbols olHeader
   alphabet <- getAlphabet alphabetSymbols 
   let hasFlagDiacritics = checkHasFlagDiacritics alphabet
-  tia <- getByteString . fromIntegral $ Data.tiaEntries olHeader * 6
-  tt <- fmap BSL.toStrict getRemainingLazyByteString
+  tia <- getLazyByteString . fromIntegral $ Data.tiaEntries olHeader * 6
+  tt <- getRemainingLazyByteString
   return Data.FST {
     Data.hfstHeader = hfstHeader,
     Data.olHeader = olHeader,
