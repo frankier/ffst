@@ -75,14 +75,14 @@ getNextStatesEpsilon transducer startStates inSym =
     movedStates = concatMapStatesApp ((flip $ getNextStates transducer) inSym) expandedStartStates
 
 expandEpsilon :: Data.FST -> FSTStates -> FSTStates
-expandEpsilon transducer states =
-    expandEpsilon' states Set.empty
+expandEpsilon transducer =
+    expandEpsilon' Set.empty
   where
-    expandEpsilon' current checked
-      | current == checked = current
+    expandEpsilon' current new
+      | new == Set.empty = current
       | otherwise =
-          let next = concatMapStatesApp ((flip $ getNextStates transducer) Data.epsilonIdx) current
-          in expandEpsilon' (Set.union current next) current
+          let next = concatMapStatesApp ((flip $ getNextStates transducer) Data.epsilonIdx) new
+          in expandEpsilon' (Set.union current new) next
 
 tc :: Data.FST -> Data.AlphabetIndex -> BSS.ByteString
 tc transducer idx = Data.alphabet transducer V.! idx
