@@ -1,5 +1,6 @@
 {-# OPTIONS -Wall #-}
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
@@ -11,7 +12,8 @@ import Data.Binary.Get (runGet)
 import qualified Data.ByteString as BSS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.UTF8 as U8S
-import qualified Data.Vector as V
+--import qualified Data.Set.Monad as Set
+--import qualified Data.Vector as V
 
 import qualified Data
 import qualified Simulator
@@ -35,8 +37,11 @@ repl transducer = repl'
     humanRun input =
       maybe
         (U8S.fromString "Input contains symbols not in transducer input alphabet")
-        (Data.alphabetStringToBs transducer . Simulator.runFST transducer)
+        (\asInput -> mconcat $ runFstBs asInput >>= flip (:) ["\n"])
         (Data.bsToAlphabetString transducer input)
+    runFstBs :: [Data.AlphabetIndex] -> [BSS.ByteString]
+    runFstBs input =
+      Data.alphabetStringToBs transducer <$> Simulator.runFST transducer input
 
 main :: IO ()
 main = do

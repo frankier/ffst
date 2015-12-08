@@ -67,8 +67,8 @@ getIsTtFinal = do
   then
     do
       isFinal <- getWord32le
-      _ <- getFloat32le
-      return $ isFinal == 1
+      x <- getFloat32le
+      return $ traceShow (isFinalityRecord, isFinal, x)  isFinal == 1
   else fail ""
 
 getTtRecordGet :: Data.FST -> Get TTRecord
@@ -87,8 +87,8 @@ getTtRecords transducer offset inSym =
   trace (prettyHex . BSL.toStrict . BSL.take 128 . BSL.drop (fromIntegral offset) $ Data.tt transducer)
   runGet (skip offset *> getTtRecordsGet transducer inSym) (Data.tt transducer)
 
-getTTRecordListGet :: Data.FST -> Get [TTRecord]
-getTTRecordListGet transducer =
+getTtRecordListGet :: Data.FST -> Get [TTRecord]
+getTtRecordListGet transducer =
     (:) <$> getTT <*> unfoldWhileM isTter getTT
   where
     getTT = getTtRecordGet transducer
@@ -97,7 +97,7 @@ getTTRecordListGet transducer =
 
 getTtRecordsGet :: Data.FST -> Data.AlphabetIndex -> Get TTRecords
 getTtRecordsGet transducer inSym = do
-    ttRecordList <- getTTRecordListGet transducer
+    ttRecordList <- getTtRecordListGet transducer
     let isFinal = any isFinalTT ttRecordList
     let edgeRecords = mapMaybe getTter ttRecordList
     let relevantEdgeRecords  = filter (\x -> ttIn x == inSym) edgeRecords

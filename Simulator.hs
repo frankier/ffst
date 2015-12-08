@@ -1,12 +1,12 @@
 module Simulator where
 
 import Debug.Trace
-import Hexdump
+--import Hexdump
 
 import Control.Arrow ((&&&), first)
 import Text.Show.Pretty (ppShow)
 
-import qualified Data.ByteString.Lazy as BSL
+--import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString as BSS
 import qualified Data.Set.Monad as Set
 import qualified Data.Vector as V
@@ -21,21 +21,36 @@ type FSTStates = Set.Set FSTState
 startState :: FSTCursor
 startState = TTCursor 0
 
---isFinalState :: Data.FST -> Data.FSTCursor -> Bool
---isFinalState _ (TIACursor _) = False
---isFinalState transducer (TTCursor _) = False
+isFinalState :: Data.FST -> FSTCursor -> Bool
+isFinalState _ (TIACursor _) = False
+isFinalState _ (TTCursor 0) = False
+isFinalState transducer (TTCursor ttIdx) =
+    ttRecordIsFinal $ getTtRecord transducer ttOffset
+  where
+    ttOffset = getTtByteOffset transducer ttIdx
+    ttRecordIsFinal (TTIsFinal isFinal) = traceShow ("isfinal", ttIdx, isFinal) isFinal
+    ttRecordIsFinal ttr =
+      traceShow ("notisfinal", ttIdx, ttr)
+        isFinalState transducer $ TTCursor $ ttIdx - 1
+
 --
 --trace (simpleHex . BSL.toStrict . BSL.take 1024 $ Data.tt transducer) input
 
 showStateEvo :: Data.FST -> [FSTStates] -> String
 showStateEvo t stateEvo = ppShow $ fmap (fmap (first $ Data.alphabetStringToBs t)) stateEvo
 
-runFST :: Data.FST -> [Data.AlphabetIndex] -> [Data.AlphabetIndex]
+runFST :: Data.FST -> [Data.AlphabetIndex] -> [[Data.AlphabetIndex]]
 runFST transducer input =
-    let statesEvolution = runFST' (Set.singleton ([], startState)) input
+    let
+      statesEvolution = runFST' (Set.singleton ([], startState)) input
+      finalStates = last statesEvolution
+      acceptingFinalStates = traceShowId $ Set.map fst $
+        Set.filter (isFinalState transducer . snd) finalStates
     in
-      trace (prettyHex . BSL.toStrict . BSL.take 1024 $ Data.tia transducer)
-      $ trace (showStateEvo transducer statesEvolution) input
+      -- trace (prettyHex . BSL.toStrict . BSL.take 1024 $ Data.tia transducer)
+      -- $
+      traceShow (finalStates, acceptingFinalStates, showStateEvo transducer statesEvolution)
+                (Set.toList acceptingFinalStates)
   where
     runFST' states (h:rest) =
       let nextStates = getNextStatesEpsilon transducer states h
