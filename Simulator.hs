@@ -19,7 +19,13 @@ startState :: FSTCursor
 startState = TTCursor 0
 
 isFinalState :: Data.FST -> FSTCursor -> Bool
-isFinalState _ (TIACursor _) = False
+isFinalState transducer (TIACursor tiaIdx) =
+    tiaIn tiaRecord == Data.epsilonIdx && isFinalState transducer cursorNext
+  where
+    cursorNext = tiaNext tiaRecord
+    tiaOffset = getTIAByteOffset (tiaIdx + Data.epsilonIdx)
+    tiaRecord = getTiaRecord transducer tiaOffset
+
 isFinalState _ (TTCursor 0) = False
 isFinalState transducer (TTCursor ttIdx) =
     ttRecordIsFinal $ getTtRecord transducer ttOffset
@@ -102,5 +108,4 @@ getNextStates transducer (TTCursor ttIdx) inSym =
     Set.fromList $ (ttOut &&& ttNext) <$> edgeRecords
   where
     ttOffset = getTtByteOffset transducer ttIdx
-    edgeRecords = ttrsEdgeRecords ttRecords
-    ttRecords = getTtRecords transducer ttOffset inSym
+    edgeRecords = getTtRecords transducer ttOffset inSym

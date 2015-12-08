@@ -29,11 +29,6 @@ data TTEdgeRecord = TTEdgeRecord {
 
 data TTRecord = TTER TTEdgeRecord | TTIsFinal Bool deriving (Show, Eq)
 
-data TTRecords = TTRecords {
-  ttrsIsFinal :: Bool,
-  ttrsEdgeRecords :: [TTEdgeRecord]
-} deriving (Show, Eq)
-
 getTIAByteOffset :: Int -> Int
 getTIAByteOffset offset = (offset + 1) * 6
 
@@ -84,27 +79,16 @@ getTtRecordGet _ =
       getFstCursor <*>
       getFloat32le)
 
-getTtRecords :: Data.FST -> Int -> Data.AlphabetIndex -> TTRecords
+getTtRecords :: Data.FST -> Int -> Data.AlphabetIndex -> [TTEdgeRecord]
 getTtRecords transducer offset inSym =
-  runGet (skip offset *> getTtRecordsGet transducer inSym) (Data.tt transducer)
+  runGet (skip offset *> getTtRecordListGet transducer inSym) (Data.tt transducer)
 
-getTtRecordListGet :: Data.FST -> Get [TTRecord]
-getTtRecordListGet transducer =
-    (:) <$> getTT <*> unfoldWhileM isTter getTT
+getTtRecordListGet :: Data.FST -> Data.AlphabetIndex -> Get [TTEdgeRecord]
+getTtRecordListGet transducer inSym =
+    mapMaybe getTter <$> filter matchesInput <$> ((:) <$> getTT <*> unfoldWhileM matchesInput getTT)
   where
     getTT = getTtRecordGet transducer
-    isTter (TTER _) = True
-    isTter _ = False
-
-getTtRecordsGet :: Data.FST -> Data.AlphabetIndex -> Get TTRecords
-getTtRecordsGet transducer inSym = do
-    ttRecordList <- getTtRecordListGet transducer
-    let isFinal = any isFinalTT ttRecordList
-    let edgeRecords = mapMaybe getTter ttRecordList
-    let relevantEdgeRecords  = filter (\x -> ttIn x == inSym) edgeRecords
-    return (TTRecords isFinal relevantEdgeRecords)
-  where
-    isFinalTT (TTIsFinal x) = x
-    isFinalTT _ = False
+    matchesInput (TTER tter) = ttIn tter == inSym
+    matchesInput _ = False
     getTter (TTER x) = Just x
     getTter _ = Nothing
