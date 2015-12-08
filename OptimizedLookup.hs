@@ -4,29 +4,26 @@ module OptimizedLookup where
 
 import Data.Binary.Get
 import Data.Binary.IEEE754
+import Data.Bits
 import Data.Maybe
-import Debug.Trace
-import Hexdump
 
 import Control.Applicative
 import Control.Monad.Loops (unfoldWhileM)
 
-import qualified Data.ByteString.Lazy as BSL
-
 import qualified Data
 import Utils
 
+data FSTCursor = TIACursor Int | TTCursor Int deriving (Eq, Show, Ord)
+
 data TIARecord = TIARecord {
-  tiaIn :: Int,
-  tiaIdxNext :: Int,
-  tiaIsTt :: Bool
+  tiaIn :: Data.AlphabetIndex,
+  tiaNext :: FSTCursor
 } deriving (Show, Eq)
 
 data TTEdgeRecord = TTEdgeRecord {
-  ttIn :: Int,
-  ttOut :: Int,
-  ttIdxNext :: Int,
-  ttIsTt :: Bool,
+  ttIn :: Data.AlphabetIndex,
+  ttOut :: Data.AlphabetIndex,
+  ttNext :: FSTCursor,
   ttWeight :: Float
 } deriving (Show, Eq)
 
@@ -49,12 +46,22 @@ getTiaRecord :: Data.FST -> Int -> TIARecord
 getTiaRecord transducer offset =
     runGet (skip offset *> getTiaRecordGet) $ Data.tia transducer
 
+isTtBit :: Int
+isTtBit = (1 `shift` 31)
+
+getFstCursor :: Get FSTCursor
+getFstCursor =
+    nextToFstCursor <$> getWord32leAsNum
+  where
+    nextToFstCursor next
+      | next .&. isTtBit > 0 = TTCursor (next `xor` isTtBit)
+      | otherwise = TIACursor next
+
 getTiaRecordGet :: Get TIARecord
 getTiaRecordGet =
   TIARecord <$>
     getWord16leAsNum  <*>
-    getWord16leAsNum  <*>
-    getBool16
+    getFstCursor
 
 getTtRecord :: Data.FST -> Int -> TTRecord
 getTtRecord transducer offset =
@@ -64,11 +71,7 @@ getIsTtFinal :: Get Bool
 getIsTtFinal = do
   isFinalityRecord <- getWord32leAsNum
   if (isFinalityRecord :: Int) == 0xffffffff
-  then
-    do
-      isFinal <- getWord32le
-      x <- getFloat32le
-      return $ traceShow (isFinalityRecord, isFinal, x)  isFinal == 1
+  then (== 1) <$> getWord32le <* getFloat32le
   else fail ""
 
 getTtRecordGet :: Data.FST -> Get TTRecord
@@ -78,13 +81,11 @@ getTtRecordGet _ =
     (TTEdgeRecord <$>
       getWord16leAsNum  <*>
       getWord16leAsNum  <*>
-      getWord16leAsNum  <*>
-      getBool16 <*>
+      getFstCursor <*>
       getFloat32le)
 
 getTtRecords :: Data.FST -> Int -> Data.AlphabetIndex -> TTRecords
 getTtRecords transducer offset inSym =
-  trace (prettyHex . BSL.toStrict . BSL.take 128 . BSL.drop (fromIntegral offset) $ Data.tt transducer)
   runGet (skip offset *> getTtRecordsGet transducer inSym) (Data.tt transducer)
 
 getTtRecordListGet :: Data.FST -> Get [TTRecord]
