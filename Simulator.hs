@@ -44,7 +44,7 @@ runFST transducer input =
         Set.filter (isFinalState transducer . snd) finalStates
     in
       trace (showStateEvo transducer statesEvolution)
-      traceShow finalStates
+      trace (showStates transducer finalStates)
                 (Set.toList acceptingFinalStates)
   where
     runFST' states (h:rest) =
@@ -92,16 +92,15 @@ getNextStates transducer (TIACursor tiaIdx) inSym
     | matches = getNextStates transducer cursorNext inSym
     | otherwise = Set.empty
   where
-    tiaOffset = getTIAByteOffset (traceShow ("TIA IDX", tiaIdx, tiaIdx + inSym) (tiaIdx + inSym))
-    tiaRecord = trace "tiaRecord" $ traceShowId $ getTiaRecord transducer tiaOffset
+    tiaOffset = getTIAByteOffset (tiaIdx + inSym)
+    tiaRecord = getTiaRecord transducer tiaOffset
     recIn = tiaIn tiaRecord
-    matches = traceShow ("TIA array lookup", recIn, inSym, tc transducer inSym) (recIn == inSym)
+    matches = recIn == inSym
     cursorNext = tiaNext tiaRecord
 
 getNextStates transducer (TTCursor ttIdx) inSym =
     Set.fromList $ (ttOut &&& ttNext) <$> edgeRecords
   where
     ttOffset = getTtByteOffset transducer ttIdx
-    --isFinal = ttrsIsFinal ttRecords
     edgeRecords = ttrsEdgeRecords ttRecords
-    ttRecords = traceShowId $ getTtRecords transducer ttOffset inSym
+    ttRecords = getTtRecords transducer ttOffset inSym

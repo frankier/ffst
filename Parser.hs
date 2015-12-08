@@ -51,7 +51,7 @@ deserialiseOLHeader =
     getWord32leAsNum <*>
     getWord32leAsNum <*>
     getWord32leAsNum <*
-    getBool32 <*> -- padding
+    getBool32 <*>
 
     getBool32 <*>
     getBool32 <*>

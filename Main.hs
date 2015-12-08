@@ -12,8 +12,6 @@ import Data.Binary.Get (runGet)
 import qualified Data.ByteString as BSS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.UTF8 as U8S
---import qualified Data.Set.Monad as Set
---import qualified Data.Vector as V
 
 import qualified Data
 import qualified Simulator
