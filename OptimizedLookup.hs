@@ -47,7 +47,7 @@ getTiaRecord transducer offset =
     runGet (skip offset *> getTiaRecordGet) $ Data.tia transducer
 
 isTtBit :: Int
-isTtBit = (1 `shift` 31)
+isTtBit = 1 `shift` 31
 
 getFstCursor :: Get FSTCursor
 getFstCursor =

@@ -1,4 +1,5 @@
 {-# OPTIONS -Wall #-} 
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data where
 
@@ -77,4 +78,8 @@ bsToAlphabetString :: FST -> BSS.ByteString -> Maybe [AlphabetIndex]
 bsToAlphabetString transducer = unfoldrM $ takeAlphabetIndex transducer
 
 alphabetStringToBs :: FST -> [AlphabetIndex] -> BSS.ByteString
-alphabetStringToBs transducer = BSS.concat . fmap (Data.alphabet transducer V.!)
+alphabetStringToBs transducer =
+    BSS.concat . fmap indexToBs
+  where
+    indexToBs 0 = "" -- should be epsilonIdx, cannot match already bound names
+    indexToBs i = Data.alphabet transducer V.! i
