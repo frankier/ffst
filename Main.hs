@@ -28,24 +28,31 @@ repl transducer = repl'
   where
     repl' = do
       input <- BSS.getLine
-      BSS.putStr $ humanRun input
+      BSS.putStr $ humanRun transducer input
       putStrLn ""
       repl'
-    humanRun :: BSS.ByteString -> BSS.ByteString
-    humanRun input =
-      maybe
-        (U8S.fromString "Input contains symbols not in transducer input alphabet")
-        (\asInput -> mconcat $ runFstBs asInput >>= flip (:) ["\n"])
-        (Data.bsToAlphabetString transducer input)
+
+humanRun :: Data.FST -> BSS.ByteString -> BSS.ByteString
+humanRun transducer input =
+    maybe
+      (U8S.fromString "Input contains symbols not in transducer input alphabet")
+      (\asInput -> mconcat $ asInput >>= flip (:) ["\n"])
+      (runFstBsToBs input)
+  where
+    runFstBsToBs :: BSS.ByteString -> Maybe [BSS.ByteString]
+    runFstBsToBs bsInput =
+      runFstBs <$> Data.bsToAlphabetString transducer bsInput
     runFstBs :: [Data.AlphabetIndex] -> [BSS.ByteString]
-    runFstBs input =
-      Data.alphabetStringToBs transducer <$> Simulator.runFST transducer input
+    runFstBs alphaStr =
+      Data.alphabetStringToBs transducer <$> Simulator.runFST transducer alphaStr
+
+readFST :: String -> IO Data.FST
+readFST fn =
+    runGet getFST <$> BSL.readFile fn
 
 main :: IO ()
-main = do
-    args <- getArgs
-    fn <- parseArgs args
-    input <- BSL.readFile fn
-    let transducer = runGet getFST input
-    putStrLn . Data.fstToString $ transducer
-    repl transducer
+main =
+    getArgs >>=
+    parseArgs >>=
+    readFST >>=
+    repl
