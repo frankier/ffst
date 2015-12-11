@@ -2,7 +2,7 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main where
+module Ffst where
 
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
@@ -37,11 +37,12 @@ humanRun transducer input =
     maybe
       (U8S.fromString "Input contains symbols not in transducer input alphabet")
       (\asInput -> mconcat $ asInput >>= flip (:) ["\n"])
-      (runFstBsToBs input)
+      (runFstBsToBs transducer input)
+
+runFstBsToBs :: Data.FST -> BSS.ByteString -> Maybe [BSS.ByteString]
+runFstBsToBs transducer bsInput =
+    runFstBs <$> Data.bsToAlphabetString transducer bsInput
   where
-    runFstBsToBs :: BSS.ByteString -> Maybe [BSS.ByteString]
-    runFstBsToBs bsInput =
-      runFstBs <$> Data.bsToAlphabetString transducer bsInput
     runFstBs :: [Data.AlphabetIndex] -> [BSS.ByteString]
     runFstBs alphaStr =
       Data.alphabetStringToBs transducer <$> Simulator.runFST transducer alphaStr

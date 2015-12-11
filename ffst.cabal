@@ -3,9 +3,13 @@ Version:             0.1
 Description:         Frankie's Finite State Technology
 Author:              Frankie Robertson
 Build-Type:          Simple
-Cabal-Version:       >=1.2
+Cabal-Version:       >=1.10
+Extra-Source-Files:
+  transducers/omorfi-omor.analyse.hfst
 
-executable ffst
+library
+  Exposed-Modules:
+    Ffst
   Build-Depends:
     base >= 4 && < 5,
     binary,
@@ -20,5 +24,33 @@ executable ffst
     pretty-hex,
     data-binary-ieee754,
     set-monad
-  main-is:           Main.hs
-  ghc-options:       -Wall
+  Other-Modules:
+    Parser,
+    Simulator,
+    OptimizedLookup,
+    Data,
+    Utils
+  Hs-Source-Dirs:    library
+  Ghc-Options:       -Wall
+  Default-language:  Haskell2010
+
+executable ffst-proc
+  Main-Is:           Main.hs
+  Build-Depends:
+    base >= 4 && < 5,
+    ffst -any
+  Hs-Source-Dirs:    executable
+  Ghc-Options:       -Wall
+  Default-language:  Haskell2010
+
+test-Suite omorfi
+  Main-Is:          Tests.hs
+  Type:             exitcode-stdio-1.0
+  Build-depends:
+    base >= 4 && < 5,
+    bytestring,
+    HUnit,
+    ffst -any
+  Hs-Source-Dirs:   test-suite
+  Ghc-Options:      -Wall
+  Default-language: Haskell2010
