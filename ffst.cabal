@@ -50,6 +50,7 @@ test-Suite omorfi
     base >= 4 && < 5,
     bytestring,
     HUnit,
+    utf8-string,
     ffst -any
   Hs-Source-Dirs:   test-suite
   Ghc-Options:      -Wall

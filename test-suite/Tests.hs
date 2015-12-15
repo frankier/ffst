@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
 import Test.HUnit
 import qualified Data.ByteString as BSS
+import qualified Data.ByteString.UTF8 as U8S
 import qualified Ffst
 import Debug.Trace
 
@@ -14,32 +13,33 @@ omorfiTest word interpretations = TestCase $ do
   Just interpretations @=? output
 
 testPuhun :: Test
-testPuhun = omorfiTest "puhun" [
-  "[WORD_ID=puhua][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG1]"
+testPuhun = omorfiTest (U8S.fromString "puhun") [
+  U8S.fromString "[WORD_ID=puhua][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG1]"
   ]
 
 testOnko :: Test
-testOnko = omorfiTest "onko" [
-  "[WORD_ID=olla][UPOS=AUX][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]",
-  "[WORD_ID=olla][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]"
+testOnko = omorfiTest (U8S.fromString "onko") [
+  U8S.fromString "[WORD_ID=olla][UPOS=AUX][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]",
+  U8S.fromString "[WORD_ID=olla][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]"
   ]
 
 testMitaan :: Test
-testMitaan = omorfiTest "mitään" [
-  "[WORD_ID=mikään][UPOS=PRON][SUBCAT=QUANTIFIER][CASE=PAR]"
+testMitaan = omorfiTest  (U8S.fromString "mitään") [
+  U8S.fromString "[WORD_ID=mikään][UPOS=PRON][SUBCAT=QUANTIFIER][CASE=PAR]"
   ]
 
 testVittu :: Test
-testVittu = omorfiTest "vittu" [
-  "[WORD_ID=vittu][UPOS=INTJ]",
-  "[WORD_ID=vittu][UPOS=NOUN][NUM=SG][CASE=NOM]"
+testVittu = omorfiTest (U8S.fromString "vittu") [
+  U8S.fromString "[WORD_ID=vittu][UPOS=INTJ]",
+  U8S.fromString "[WORD_ID=vittu][UPOS=NOUN][NUM=SG][CASE=NOM]"
   ]
 
 testPitaisinkohan :: Test
-testPitaisinkohan = omorfiTest "pitäisiköhän" [
-  "[WORD_ID=pitää][UPOS=AUX][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]",
-  "[WORD_ID=pitää][UPOS=VERB][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]"
+testPitaisinkohan = omorfiTest (U8S.fromString "pitäisiköhän") [
+  U8S.fromString "[WORD_ID=pitää][UPOS=AUX][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]",
+  U8S.fromString "[WORD_ID=pitää][UPOS=VERB][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]"
   ]
+
 
 main :: IO Counts
 main = runTestTT $ TestList [testPuhun, testOnko, testMitaan, testVittu, testPitaisinkohan]
