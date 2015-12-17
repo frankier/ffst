@@ -14,7 +14,7 @@ type FSTState = ([Data.AlphabetIndex], FSTCursor)
 type FSTStates = Set.Set FSTState
 
 startState :: FSTCursor
-startState = TTCursor 0
+startState = TIACursor 0
 
 isFinalState :: Data.FST -> FSTCursor -> Bool
 isFinalState transducer (TIACursor tiaIdx) =
