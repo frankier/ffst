@@ -39,6 +39,16 @@ testPitaisinkohan = omorfiTest (U8S.fromString "pitäisiköhän") [
   U8S.fromString "[WORD_ID=pitää][UPOS=VERB][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]"
   ]
 
+testJyvaskylassa :: Test
+testJyvaskylassa = omorfiTest (U8S.fromString "Jyväskylässä") [
+  U8S.fromString "[WORD_ID=Jyväskylä][UPOS=PROPN][PROPER=PROPER][NUM=SG][CASE=INE]"
+  ]
+
+testPuhelimet :: Test
+testPuhelimet = omorfiTest (U8S.fromString "puhelimet") [
+  U8S.fromString "[WORD_ID=puhe][UPOS=NOUN][NUM=SG][CASE=NOM][BOUNDARY=COMPOUND][WORD_ID=lime][UPOS=NOUN][NUM=PL][CASE=NOM]",
+  U8S.fromString "[WORD_ID=puhelin][UPOS=NOUN][NUM=PL][CASE=NOM]"
+  ]
 
 main :: IO Counts
-main = runTestTT $ TestList [testPuhun, testOnko, testMitaan, testVittu, testPitaisinkohan]
+main = runTestTT $ TestList [testPuhun, testOnko, testMitaan, testVittu, testPitaisinkohan, testJyvaskylassa, testPuhelimet]
