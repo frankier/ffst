@@ -1,6 +1,7 @@
 module Simulator where
 
 import Control.Arrow ((&&&), first)
+import Data.Foldable (foldl')
 import Text.Show.Pretty (ppShow)
 
 import qualified Data.ByteString as BSS
@@ -49,7 +50,7 @@ runFST transducer input =
     in
       Set.toList acceptingFinalStates
   where
-    runFST' = foldl (getNextStatesEpsilon transducer)
+    runFST' = foldl' (getNextStatesEpsilon transducer)
 
 concatMapStates :: ([Data.AlphabetIndex] -> a -> [Data.AlphabetIndex]) -> (FSTCursor -> Set.Set (a, FSTCursor)) -> FSTStates -> FSTStates
 concatMapStates combineStrs f states =
