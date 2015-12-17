@@ -42,7 +42,8 @@ showStates t states = ppShow $ fmap (first $ Data.alphabetStringToBs t) states
 runFST :: Data.FST -> [Data.AlphabetIndex] -> [[Data.AlphabetIndex]]
 runFST transducer input =
     let
-      finalStates = runFST' (Set.singleton ([], startState)) input
+      expandedStartStates = expandEpsilon transducer (Set.singleton ([], startState))
+      finalStates = runFST' expandedStartStates input
       acceptingFinalStates = Set.map fst $
         Set.filter (isFinalState transducer . snd) finalStates
     in
@@ -69,8 +70,7 @@ getNextStatesEpsilon :: Data.FST -> FSTStates -> Data.AlphabetIndex -> FSTStates
 getNextStatesEpsilon transducer startStates inSym =
     expandEpsilon transducer movedStates
   where
-    expandedStartStates = expandEpsilon transducer startStates
-    movedStates = concatMapStatesApp ((flip $ getNextStates transducer) inSym) expandedStartStates
+    movedStates = concatMapStatesApp ((flip $ getNextStates transducer) inSym) startStates
 
 expandEpsilon :: Data.FST -> FSTStates -> FSTStates
 expandEpsilon transducer =
