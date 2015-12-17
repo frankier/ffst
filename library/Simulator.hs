@@ -1,7 +1,5 @@
 module Simulator where
 
-import Debug.Trace
-
 import Control.Arrow ((&&&), first)
 import Text.Show.Pretty (ppShow)
 
@@ -44,19 +42,13 @@ showStates t states = ppShow $ fmap (first $ Data.alphabetStringToBs t) states
 runFST :: Data.FST -> [Data.AlphabetIndex] -> [[Data.AlphabetIndex]]
 runFST transducer input =
     let
-      statesEvolution = runFST' (Set.singleton ([], startState)) input
-      finalStates = last statesEvolution
+      finalStates = runFST' (Set.singleton ([], startState)) input
       acceptingFinalStates = Set.map fst $
         Set.filter (isFinalState transducer . snd) finalStates
     in
-      trace (showStateEvo transducer statesEvolution)
-      trace (showStates transducer finalStates)
-                (Set.toList acceptingFinalStates)
+      Set.toList acceptingFinalStates
   where
-    runFST' states (h:rest) =
-      let nextStates = getNextStatesEpsilon transducer states h
-      in states:runFST' nextStates rest
-    runFST' states [] = [states]
+    runFST' = foldl (getNextStatesEpsilon transducer)
 
 concatMapStates :: ([Data.AlphabetIndex] -> a -> [Data.AlphabetIndex]) -> (FSTCursor -> Set.Set (a, FSTCursor)) -> FSTStates -> FSTStates
 concatMapStates combineStrs f states =

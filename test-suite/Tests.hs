@@ -4,12 +4,11 @@ import Test.HUnit
 import qualified Data.ByteString as BSS
 import qualified Data.ByteString.UTF8 as U8S
 import qualified Ffst
-import Debug.Trace
 
 omorfiTest :: BSS.ByteString -> [BSS.ByteString] -> Test
 omorfiTest word interpretations = TestCase $ do
   transducer <- Ffst.readFST "transducers/omorfi-omor.analyse.hfst"
-  let output = traceShowId $ Ffst.runFstBsToBs transducer word
+  let output = Ffst.runFstBsToBs transducer word
   Just interpretations @=? output
 
 testPuhun :: Test
