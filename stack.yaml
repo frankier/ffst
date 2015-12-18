@@ -1,7 +1,11 @@
 flags: {}
 packages:
 - '.'
+- location:
+    git: https://github.com/frankier/utf8-string.git
+    commit: f2bae1a4010fb7e65d8dc14bfdead1506c11d97e
 extra-deps:
 - cabal-helper-0.6.2.0
 - pretty-hex-1.0
-resolver: lts-3.14
+- HUnit-1.3.0.0
+resolver: lts-3.18

@@ -1,53 +1,101 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Test.HUnit
 import qualified Data.ByteString as BSS
-import qualified Data.ByteString.UTF8 as U8S
 import qualified Ffst
+import Data.String.UTF8
 
-omorfiTest :: BSS.ByteString -> [BSS.ByteString] -> Test
-omorfiTest word interpretations = TestCase $ do
-  transducer <- Ffst.readFST "transducers/omorfi-omor.analyse.hfst"
+transducerTest :: String -> BSS.ByteString -> [BSS.ByteString] -> Test
+transducerTest tranducerFn word interpretations = TestCase $ do
+  transducer <- Ffst.readFST tranducerFn
   let output = Ffst.runFstBsToBs transducer word
   Just interpretations @=? output
 
+omorfiTest = transducerTest "transducers/omorfi-omor.analyse.hfst"
+englishTest = transducerTest "transducers/english-bnc.hfstol"
+frenchTest = transducerTest "transducers/omorfi-omor.analyse.hfst"
+
 testPuhun :: Test
-testPuhun = omorfiTest (U8S.fromString "puhun") [
-  U8S.fromString "[WORD_ID=puhua][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG1]"
+testPuhun = omorfiTest (toRep "puhun") [
+  toRep "[WORD_ID=puhua][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG1]"
   ]
 
 testOnko :: Test
-testOnko = omorfiTest (U8S.fromString "onko") [
-  U8S.fromString "[WORD_ID=olla][UPOS=AUX][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]",
-  U8S.fromString "[WORD_ID=olla][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]"
+testOnko = omorfiTest (toRep "onko") [
+  toRep "[WORD_ID=olla][UPOS=AUX][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]",
+  toRep "[WORD_ID=olla][UPOS=VERB][VOICE=ACT][MOOD=INDV][TENSE=PRESENT][PERS=SG3][CLIT=KO]"
   ]
 
 testMitaan :: Test
-testMitaan = omorfiTest  (U8S.fromString "mitään") [
-  U8S.fromString "[WORD_ID=mikään][UPOS=PRON][SUBCAT=QUANTIFIER][CASE=PAR]"
+testMitaan = omorfiTest  (toRep "mitään") [
+  toRep "[WORD_ID=mikään][UPOS=PRON][SUBCAT=QUANTIFIER][CASE=PAR]"
   ]
 
 testVittu :: Test
-testVittu = omorfiTest (U8S.fromString "vittu") [
-  U8S.fromString "[WORD_ID=vittu][UPOS=INTJ]",
-  U8S.fromString "[WORD_ID=vittu][UPOS=NOUN][NUM=SG][CASE=NOM]"
+testVittu = omorfiTest (toRep "vittu") [
+  toRep "[WORD_ID=vittu][UPOS=INTJ]",
+  toRep "[WORD_ID=vittu][UPOS=NOUN][NUM=SG][CASE=NOM]"
   ]
 
 testPitaisinkohan :: Test
-testPitaisinkohan = omorfiTest (U8S.fromString "pitäisiköhän") [
-  U8S.fromString "[WORD_ID=pitää][UPOS=AUX][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]",
-  U8S.fromString "[WORD_ID=pitää][UPOS=VERB][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]"
+testPitaisinkohan = omorfiTest (toRep "pitäisiköhän") [
+  toRep "[WORD_ID=pitää][UPOS=AUX][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]",
+  toRep "[WORD_ID=pitää][UPOS=VERB][VOICE=ACT][MOOD=COND][PERS=SG3][CLIT=KO][CLIT=HAN]"
   ]
 
 testJyvaskylassa :: Test
-testJyvaskylassa = omorfiTest (U8S.fromString "Jyväskylässä") [
-  U8S.fromString "[WORD_ID=Jyväskylä][UPOS=PROPN][PROPER=PROPER][NUM=SG][CASE=INE]"
+testJyvaskylassa = omorfiTest (toRep "Jyväskylässä") [
+  toRep "[WORD_ID=Jyväskylä][UPOS=PROPN][PROPER=PROPER][NUM=SG][CASE=INE]"
   ]
 
 testPuhelimet :: Test
-testPuhelimet = omorfiTest (U8S.fromString "puhelimet") [
-  U8S.fromString "[WORD_ID=puhe][UPOS=NOUN][NUM=SG][CASE=NOM][BOUNDARY=COMPOUND][WORD_ID=lime][UPOS=NOUN][NUM=PL][CASE=NOM]",
-  U8S.fromString "[WORD_ID=puhelin][UPOS=NOUN][NUM=PL][CASE=NOM]"
+testPuhelimet = omorfiTest (toRep "puhelimet") [
+  toRep "[WORD_ID=puhe][UPOS=NOUN][NUM=SG][CASE=NOM][BOUNDARY=COMPOUND][WORD_ID=lime][UPOS=NOUN][NUM=PL][CASE=NOM]",
+  toRep "[WORD_ID=puhelin][UPOS=NOUN][NUM=PL][CASE=NOM]"
+  ]
+
+testDoors :: Test
+testDoors = englishTest (toRep "doors") [
+  toRep "door<NN2>"
+  ]
+
+testFoxes :: Test
+testFoxes = englishTest (toRep "foxes") [
+  toRep "fox<NN2-VVZ>",
+  toRep "fox<NN2>",
+  toRep "fox<VVZ-NN2>",
+  toRep "fox<VVZ>"
+  ]
+
+testHung :: Test
+testHung = englishTest (toRep "hung") [
+  toRep "hang<VVD-AJ0>",
+  toRep "hang<VVD-VVN>",
+  toRep "hang<VVD>",
+  toRep "hang<VVN-AJ0>",
+  toRep "hang<VVN-VVD>",
+  toRep "hang<VVN>",
+  toRep "hung<AJ0-VVD>",
+  toRep "hung<AJ0-VVN>",
+  toRep "hung<AJ0>"
+  ]
+
+testHanged :: Test
+testHanged = englishTest (toRep "hanged") [
+  toRep "hang<VVD-VVN>",
+  toRep "hang<VVD>",
+  toRep "hang<VVN-AJ0>",
+  toRep "hang<VVN>",
+  toRep "hanged<AJ0-VVD>",
+  toRep "hanged<AJ0-VVN>",
+  toRep "hanged<AJ0>"
+  ]
+
+testAntidisestablishmentarianism :: Test
+testAntidisestablishmentarianism = englishTest (toRep "antidisestablishmentarianism") [
+  toRep "antidisestablishmentarianism<NN1>"
   ]
 
 main :: IO Counts
